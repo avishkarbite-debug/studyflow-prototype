@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>Studyflow — your personal study space</title>
+  <style>
+    :root {
+      --ink: #202334;
+      --muted: #85899b;
+      --line: #eceef4;
+      --paper: #fff;
+      --canvas: #f6f7fb;
+      --violet: #7067e8;
+      --violet-dark: #5f56d6;
+      --violet-wash: #f0efff;
+      --mint: #daf4e9;
+      --mint-ink: #268463;
+      --peach: #fff0e8;
+      --peach-ink: #c2754f;
+      --blue-wash: #e9f2ff;
+      --nav: #202334;
+      --shadow: 0 12px 32px rgba(37, 42, 75, .055);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); min-height: 100vh; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 238px minmax(0,1fr); }
+    .sidebar { background: var(--nav); color: #fff; padding: 27px 17px 20px; display: flex; flex-direction: column; min-height: 100vh; }
+    .brand { display:flex; align-items:center; gap:11px; padding: 0 12px; margin-bottom: 44px; color:#fff; font-size:18px; font-weight:750; letter-spacing:-.5px; }
+    .brand-mark { width:31px; height:31px; border-radius:11px; display:grid; place-items:center; background:#8d86ff; color:white; box-shadow:0 5px 14px #100f284d; }
+    .brand-mark svg { width:18px; height:18px; }
+    .nav-caption { padding:0 12px; color:#8b8fa2; text-transform:uppercase; font-size:10px; font-weight:750; letter-spacing:1.35px; margin:0 0 10px; }
+    .nav-list { display:grid; gap:5px; }
+    .nav-item { border:0; width:100%; text-align:left; display:flex; align-items:center; gap:13px; border-radius:11px; color:#aeb1c1; background:transparent; padding:12px 13px; font-size:13px; font-weight:570; transition:.18s ease; }
+    .nav-item svg { width:18px; height:18px; flex:0 0 auto; stroke:currentColor; }
+    .nav-item:hover { color:#fff; background:#ffffff0c; }
+    .nav-item.active { color:#fff; background:#38394d; box-shadow: inset 3px 0 #918aff; }
+    .nav-spacer { flex:1; min-height:45px; }
+    .sidebar-note { margin:0 7px 17px; border:1px solid #ffffff15; border-radius:15px; background:linear-gradient(145deg,#34354b,#292a3d); padding:15px 14px; }
+    .note-orb { width:27px; height:27px; border-radius:10px; display:grid; place-items:center; background:#514ba2; color:#d2ceff; margin-bottom:10px; }
+    .note-orb svg { width:15px; height:15px; }
+    .sidebar-note strong { display:block; font-size:12px; margin-bottom:5px; }
+    .sidebar-note p { color:#a4a7b7; font-size:10px; line-height:1.5; margin:0 0 12px; }
+    .sidebar-note button { border:0; background:transparent; padding:0; color:#bdb8ff; font-size:10px; font-weight:700; }
+    .profile { display:flex; align-items:center; gap:10px; border-top:1px solid #ffffff17; padding:17px 8px 0; }
+    .avatar { width:34px; height:34px; border-radius:50%; display:grid; place-items:center; background:#f1cfb7; color:#674a3b; font-size:11px; font-weight:800; flex:0 0 auto; }
+    .profile-copy { min-width:0; flex:1; }
+    .profile-copy strong { display:block; font-size:11px; font-weight:650; }
+    .profile-copy span { display:block; margin-top:3px; font-size:10px; color:#9a9daf; }
+    .profile-more { color:#9093a6; font-size:18px; }
+    .workspace { min-width:0; padding:0 clamp(22px,4.2vw,62px) 52px; }
+    .topbar { height:82px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .crumb { color:var(--muted); font-size:12px; }
+    .crumb b { color:#3d4051; font-weight:650; }
+    .top-actions { display:flex; align-items:center; gap:18px; }
+    .today-label { color:var(--muted); font-size:11px; }
+    .icon-button { width:36px; height:36px; border:1px solid var(--line); background:#fff; color:#74798c; border-radius:12px; display:grid; place-items:center; position:relative; }
+    .icon-button svg { width:17px; height:17px; stroke:currentColor; }
+    .notification-dot { width:6px; height:6px; border:1px solid #fff; border-radius:50%; background:#e78f79; position:absolute; top:7px; right:7px; }
+    .page { max-width:1260px; margin:0 auto; }
+    .page-heading { padding:31px 0 22px; display:flex; align-items:flex-end; justify-content:space-between; gap:20px; }
+    .eyebrow { color:var(--violet); font-size:10px; font-weight:780; text-transform:uppercase; letter-spacing:1.15px; margin:0 0 8px; }
+    h1 { font-size:26px; line-height:1.2; letter-spacing:-.9px; margin:0; font-weight:720; }
+    .page-description { margin:7px 0 0; color:var(--muted); font-size:12px; line-height:1.5; }
+    .button { border:0; border-radius:10px; padding:11px 15px; font-size:11px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:transform .15s ease,background .15s ease; }
+    .button:hover { transform:translateY(-1px); }
+    .button svg { width:15px; height:15px; stroke:currentColor; }
+    .button-primary { color:#fff; background:var(--violet); box-shadow:0 6px 14px #7067e82b; }
+    .button-primary:hover { background:var(--violet-dark); }
+    .button-soft { color:var(--violet-dark); background:var(--violet-wash); }
+    .button-outline { color:#626679; background:#fff; border:1px solid var(--line); }
+    .button-plain { color:var(--violet-dark); background:transparent; padding:8px 2px; }
+    .hero { overflow:hidden; min-height:170px; position:relative; color:#fff; border-radius:18px; padding:25px 28px; display:flex; align-items:center; justify-content:space-between; background:linear-gradient(108deg,#7067e8 0%,#7e75ec 57%,#9188f3 100%); box-shadow:0 13px 25px #6e65dc24; }
+    .hero:before,.hero:after { content:""; position:absolute; border:1px solid #ffffff20; border-radius:50%; pointer-events:none; }
+    .hero:before { width:270px;height:270px;right:100px;top:-148px; }
+    .hero:after { width:210px;height:210px;right:-38px;bottom:-147px; }
+    .hero-copy { position:relative; z-index:1; max-width:475px; }
+    .hero-kicker { color:#d8d5ff; font-size:10px; font-weight:650; margin:0 0 9px; letter-spacing:.25px; }
+    .hero h2 { font-size:22px; letter-spacing:-.65px; margin:0; line-height:1.25; font-weight:680; }
+    .hero p { font-size:11px; color:#e4e2ff; margin:8px 0 16px; line-height:1.5; }
+    .hero .button { background:#fff; color:#5e55d4; padding:10px 13px; font-size:10px; }
+    .hero-illustration { width:154px; height:125px; position:relative; margin:0 42px 0 18px; flex:0 0 auto; z-index:1; }
+    .orbit { border:1px solid #ffffff55; border-radius:50%; position:absolute; transform:rotate(-22deg); width:145px; height:68px; top:29px; left:0; }
+    .orbit.second { transform:rotate(52deg); width:115px; height:100px; top:10px; left:15px; border-color:#ffffff37; }
+    .book { position:absolute; width:77px; height:59px; left:37px; top:32px; border-radius:8px 8px 12px 12px; background:#fff; transform:rotate(-8deg); box-shadow:0 10px 20px #423db152; }
+    .book:before { content:""; position:absolute; left:37px; top:3px; height:51px; width:2px; background:#e7e5ff; }
+    .book:after { content:"✦"; position:absolute; color:#8279e9; font-size:24px; left:10px; top:10px; }
+    .spark { position:absolute; font-size:15px; color:#f4dc9d; }
+    .spark.one { top:10px; right:4px; }.spark.two { bottom:14px; left:5px; font-size:11px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:17px 0 19px; }
+    .stat-card,.card { background:var(--paper); border:1px solid #eef0f5; border-radius:15px; box-shadow:var(--shadow); }
+    .stat-card { padding:15px 17px; display:flex; gap:13px; align-items:center; min-height:76px; }
+    .stat-icon { width:37px; height:37px; border-radius:12px; display:grid; place-items:center; flex:0 0 auto; }
+    .stat-icon svg { width:18px; height:18px; stroke:currentColor; }
+    .stat-icon.lavender { background:#f0efff; color:#7067e8; }.stat-icon.mint { background:#e6f7ef; color:#389675; }.stat-icon.peach { background:#fff0e8; color:#cf8560; }
+    .stat-copy { flex:1; min-width:0; }
+    .stat-label { display:block; color:var(--muted); font-size:10px; margin-bottom:5px; }
+    .stat-value { font-size:18px; font-weight:730; letter-spacing:-.55px; }
+    .stat-change { float:right; margin-top:5px; color:#38a37c; font-size:9px; font-weight:700; }
+    .dashboard-grid { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(265px,.85fr); gap:16px; align-items:start; }
+    .stack { display:grid; gap:16px; }
+    .card { padding:18px 19px; }
+    .card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .card-title { margin:0; font-size:13px; font-weight:720; letter-spacing:-.2px; }
+    .card-subtitle { margin:5px 0 0; color:var(--muted); font-size:10px; line-height:1.4; }
+    .text-link { border:0; background:transparent; color:var(--violet); font-size:10px; font-weight:700; padding:2px 0; white-space:nowrap; }
+    .small-pill { padding:6px 8px; background:#f4f5f9; color:#777b8e; font-size:9px; border-radius:7px; white-space:nowrap; }
+    .task-list { display:grid; }
+    .task-row { display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:10px; align-items:center; min-height:53px; border-top:1px solid #f0f1f5; }
+    .task-check { width:16px; height:16px; border:1.5px solid #d6d8e3; border-radius:5px; color:white; display:grid; place-items:center; background:#fff; padding:0; }
+    .task-check svg { width:11px;height:11px;opacity:0; }
+    .task-row.done .task-check { border-color:#6fc6a4; background:#6fc6a4; }.task-row.done .task-check svg { opacity:1; }
+    .task-copy { min-width:0; }
+    .task-copy strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; font-weight:650; }
+    .task-row.done .task-copy strong { color:#9b9eac; text-decoration:line-through; }
+    .task-copy span { display:block; margin-top:4px; font-size:9px; color:#989bac; }
+    .task-tag { padding:5px 7px; color:#6960d3; background:#f1f0ff; border-radius:6px; font-size:8px; font-weight:650; }
+    .task-tag.practice { color:#448a71;background:#eaf7f1; }.task-tag.review { color:#bf7954;background:#fff2e9; }
+    .task-footer { display:flex; align-items:center; gap:11px; padding-top:14px; }
+    .progress-track { height:6px; border-radius:8px; background:#eeeef5; overflow:hidden; flex:1; }
+    .progress-fill { width:33%; height:100%; border-radius:8px; background:linear-gradient(90deg,#756ce9,#9a91ff); transition:width .25s; }
+    .task-footer span { color:#85899b; font-size:9px; white-space:nowrap; }
+    .coach-card { background:linear-gradient(145deg,#fbfaff,#f4f2ff); border-color:#eeecff; position:relative; overflow:hidden; }
+    .coach-card:after { content:""; width:130px;height:130px;border:1px solid #e1deff;border-radius:50%;position:absolute;right:-74px;top:-68px; }
+    .coach-mark { width:31px;height:31px;display:grid;place-items:center;border-radius:10px;background:#e8e6ff;color:#7067e8;margin-bottom:13px; }
+    .coach-mark svg { width:17px;height:17px;stroke:currentColor; }
+    .coach-card h3 { font-size:12px; margin:0 0 7px; letter-spacing:-.15px; }
+    .coach-card p { font-size:10px; color:#777b91; line-height:1.55; margin:0 0 13px; max-width:300px; }
+    .coach-foot { display:flex; align-items:center; justify-content:space-between; gap:9px; }
+    .coach-foot .button { padding:8px 10px; font-size:9px; }
+    .sparkles { color:#a39cf1; font-size:14px; letter-spacing:4px; }
+    .exam-card { position:relative; overflow:hidden; }
+    .exam-top { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .exam-icon { width:34px;height:34px;border-radius:11px;background:#fff2eb;color:#d2825b;display:grid;place-items:center; }
+    .exam-icon svg { width:17px;height:17px;stroke:currentColor; }
+    .days-left { background:#fff2e9;color:#c57652;border-radius:7px;padding:6px 8px;font-size:9px;font-weight:700; }
+    .exam-card h3 { margin:14px 0 5px; font-size:12px; }
+    .exam-card p { margin:0;color:var(--muted);font-size:10px; }
+    .exam-progress { margin-top:15px; display:flex; align-items:center; gap:9px; }
+    .exam-progress .progress-track { height:5px; }.exam-progress span { color:#8c8fa0;font-size:9px;white-space:nowrap; }
+    .week-card { padding-bottom:15px; }
+    .week-head { display:flex;align-items:center;justify-content:space-between; }
+    .week-total { color:var(--violet);font-size:11px;font-weight:750; }
+    .bars { display:flex;align-items:flex-end;justify-content:space-between;height:86px;margin:18px 4px 0;gap:9px; }
+    .bar-col { height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;flex:1; }
+    .bar-rail { height:65px;width:16px;background:#f1f0fd;border-radius:7px;display:flex;align-items:flex-end;overflow:hidden; }
+    .bar { width:100%;background:#9189ef;border-radius:7px;min-height:3px; }.bar.today { background:#6259d7; }
+    .bar-day { color:#a0a2af;font-size:8px; }.bar-day.today { color:#5c54cd;font-weight:750; }
+    .subject-card .subject-row { display:grid; grid-template-columns:28px minmax(0,1fr) 34px; gap:10px;align-items:center;padding:10px 0;border-top:1px solid #f0f1f5; }
+    .subject-badge {width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:9px;font-weight:750;}
+    .subject-badge.ds {background:#f0efff;color:#7067e8;}.subject-badge.math {background:#e8f6ef;color:#399373;}.subject-badge.phy {background:#fff1e9;color:#c87951;}
+    .subject-detail strong {display:block;font-size:9px;font-weight:650;}.subject-detail .mini-track {height:4px;border-radius:5px;background:#eff0f4;margin-top:6px;overflow:hidden;}.subject-detail .mini-fill {height:100%;border-radius:5px;background:#8d85ed;}.subject-detail .mini-fill.green{background:#70c3a2}.subject-detail .mini-fill.orange{background:#e4a27c}
+    .subject-score {font-size:9px;color:#777b8e;text-align:right;font-weight:650;}
+    .hidden { display:none !important; }
+    .content-card { margin-top:2px; }
+    .plan-layout { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(260px,.75fr); gap:16px; }
+    .plan-day { display:grid;grid-template-columns:43px minmax(0,1fr);gap:13px;padding:16px 0;border-top:1px solid #f0f1f5; }
+    .date-chip {width:40px;height:45px;border-radius:11px;background:#f0efff;color:#6b62dd;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .date-chip b {font-size:14px;line-height:1.1}.date-chip span{font-size:8px;font-weight:700;text-transform:uppercase;margin-top:3px}
+    .plan-items { display:grid;gap:8px; }
+    .plan-item { display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:#fafbfe;border:1px solid #f0f1f6;border-radius:10px; }
+    .plan-item strong {display:block;font-size:10px}.plan-item span {display:block;color:var(--muted);font-size:9px;margin-top:4px}.plan-item .time {color:#787b8b;font-size:9px;white-space:nowrap}
+    .plan-summary { background:linear-gradient(150deg,#faf9ff,#f3f2ff);border-color:#eeecff; }
+    .summary-number {font-size:25px;font-weight:760;letter-spacing:-1px;margin:3px 0 4px;}.summary-hint {font-size:10px;color:#888b9b;margin:0 0 18px;}
+    .summary-line {display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #e9e7fa;font-size:10px;color:#777b8e}.summary-line strong{color:#3c3f51;font-size:10px}
+    .tutor-layout { display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:16px; }
+    .chat-card {min-height:490px;display:flex;flex-direction:column;}
+    .chat-log {flex:1;display:flex;flex-direction:column;gap:15px;padding:4px 1px 16px;}
+    .chat-message {display:flex;align-items:flex-start;gap:9px;max-width:82%;}
+    .chat-message.user {align-self:flex-end;flex-direction:row-reverse;}
+    .chat-avatar {width:26px;height:26px;border-radius:9px;display:grid;place-items:center;background:#eeedff;color:#6c63dc;flex:0 0 auto;}
+    .chat-avatar svg {width:14px;height:14px;stroke:currentColor;}.chat-message.user .chat-avatar{background:#f5e3d6;color:#926649;font-size:8px;font-weight:750;}
+    .bubble {background:#f7f8fb;border:1px solid #eff0f4;border-radius:3px 12px 12px 12px;padding:10px 12px;font-size:10px;line-height:1.55;color:#55596c;}
+    .chat-message.user .bubble {background:#7067e8;border-color:#7067e8;color:#fff;border-radius:12px 3px 12px 12px;}
+    .bubble-meta {display:block;font-size:8px;color:#a1a3af;margin-top:6px;}.chat-message.user .bubble-meta{color:#dedcff;}
+    .chat-form {display:flex;gap:8px;align-items:center;border:1px solid #e9eaf0;border-radius:12px;padding:6px;background:#fff;}
+    .chat-form input {border:0;outline:0;flex:1;min-width:0;padding:8px 7px;font-size:10px;color:var(--ink);}
+    .chat-form .button {width:34px;height:34px;padding:0;flex:0 0 auto;border-radius:9px;}
+    .suggestions {display:flex;gap:7px;flex-wrap:wrap;margin-top:11px;}
+    .suggestion {border:1px solid #ebecf2;background:#fff;border-radius:8px;padding:7px 9px;color:#777b8c;font-size:9px;}
+    .suggestion:hover{border-color:#d5d1ff;color:#6259d7;}
+    .tutor-aside .card + .card {margin-top:13px;}
+    .topic-pill {display:inline-flex;background:#f0efff;color:#6a61d6;border-radius:7px;padding:6px 8px;font-size:9px;margin:10px 0 8px;}
+    .tip-copy {color:#74788c;font-size:10px;line-height:1.55;margin:0;}
+    .disclaimer {color:#989baa;font-size:9px;line-height:1.5;margin:14px 2px 0;}
+    .quiz-intro {display:flex;align-items:center;gap:17px;padding:13px 0 19px;}
+    .quiz-art {width:68px;height:68px;border-radius:18px;background:#f0efff;color:#756ce4;display:grid;place-items:center;flex:0 0 auto;}
+    .quiz-art svg {width:32px;height:32px;stroke:currentColor;}
+    .quiz-intro h2 {font-size:15px;margin:0 0 5px;}.quiz-intro p{font-size:10px;color:var(--muted);line-height:1.5;margin:0;}
+    .quiz-grid {display:grid;grid-template-columns:minmax(0,1fr) 255px;gap:16px;align-items:start;}
+    .quiz-stage {min-height:275px;}
+    .quiz-question {font-size:13px;line-height:1.5;font-weight:680;margin:4px 0 15px;}
+    .quiz-option {display:flex;align-items:center;gap:10px;width:100%;background:#fff;border:1px solid #eceef4;border-radius:10px;padding:11px 12px;margin:8px 0;text-align:left;color:#55596c;font-size:10px;}
+    .quiz-option:hover:not(:disabled){border-color:#c7c2ff;background:#fbfaff;}.quiz-option.selected{border-color:#7b72e8;background:#f7f6ff;color:#5149c1;}.quiz-option.correct{border-color:#8bd0b2;background:#f2fbf6;color:#287a5d;}.quiz-option.wrong{border-color:#efb9a8;background:#fff7f3;color:#a85e43;}
+    .option-letter {width:21px;height:21px;border-radius:7px;background:#f2f3f7;color:#818596;display:grid;place-items:center;font-size:9px;font-weight:700;flex:0 0 auto;}
+    .quiz-feedback {border-radius:9px;padding:10px 12px;font-size:10px;line-height:1.5;margin:12px 0;}.quiz-feedback.good{background:#eff9f4;color:#357e63}.quiz-feedback.try{background:#fff4ed;color:#a96848}
+    .quiz-bottom {display:flex;justify-content:space-between;align-items:center;margin-top:14px;}.quiz-count{color:#9396a5;font-size:9px;}
+    .mastery-list {display:grid;gap:13px;}.mastery-item {display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:7px;align-items:center;}.mastery-item strong{display:block;font-size:9px;font-weight:650;}.mastery-item .mini-track{height:5px;border-radius:5px;background:#f0f1f5;margin-top:7px;overflow:hidden;}.mastery-item .mini-fill{height:100%;border-radius:5px;background:#7e75e7;transition:width .3s}.mastery-item .score{font-size:9px;text-align:right;color:#7e8293}
+    .insights-grid {display:grid;grid-template-columns:1fr 1fr;gap:16px;}.insights-grid .card{min-height:210px;}
+    .big-progress {display:flex;align-items:center;gap:18px;margin-top:18px;}
+    .ring {width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#756ce7 0 72%,#eeedf8 72% 100%);position:relative;flex:0 0 auto;}
+    .ring:before{content:"";position:absolute;inset:9px;border-radius:50%;background:#fff;}.ring div{position:relative;text-align:center}.ring strong{display:block;font-size:18px;letter-spacing:-.5px}.ring span{display:block;color:#9a9dac;font-size:8px;margin-top:2px;}
+    .insight-copy strong{display:block;font-size:11px;margin-bottom:5px}.insight-copy p{font-size:10px;line-height:1.5;color:#898c9c;margin:0;}
+    .week-detail {display:grid;gap:12px;margin-top:18px;}.week-detail-row{display:grid;grid-template-columns:45px minmax(0,1fr) 37px;gap:9px;align-items:center;font-size:9px;color:#9295a4}.week-detail-row .progress-track{height:7px;background:#f1f1f7}.week-detail-row .progress-fill{background:#9189eb}.week-detail-row strong{text-align:right;color:#777b8c;font-size:9px;}
+    .reminder-row {display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid #f0f1f5;gap:10px;}.reminder-row strong{display:block;font-size:10px}.reminder-row span{display:block;color:#9699a8;font-size:9px;margin-top:4px;}
+    .toggle {width:34px;height:19px;border:0;border-radius:15px;background:#e4e5ec;padding:2px;flex:0 0 auto;transition:.2s}.toggle:after{content:"";display:block;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:.2s}.toggle.on{background:#766de6}.toggle.on:after{transform:translateX(15px)}
+    .modal-backdrop {position:fixed;inset:0;background:#1b1d2d80;display:grid;place-items:center;padding:20px;z-index:10;}
+    .modal {background:#fff;border-radius:17px;width:min(100%,480px);padding:23px;box-shadow:0 25px 80px #20233442;max-height:90vh;overflow:auto;}
+    .modal-head {display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:18px;}.modal-head h2{font-size:17px;margin:0 0 6px;letter-spacing:-.4px}.modal-head p{font-size:10px;color:var(--muted);margin:0;line-height:1.5}.close-modal{border:0;background:#f5f5f8;color:#787c8c;width:29px;height:29px;border-radius:9px;font-size:17px;}
+    .form-grid {display:grid;grid-template-columns:1fr 1fr;gap:13px;}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:9px;color:#777b8c;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid #e8eaf0;border-radius:9px;padding:10px 11px;outline:0;color:#343747;background:white;font-size:10px}.field input:focus,.field select:focus,.field textarea:focus{border-color:#968eff;box-shadow:0 0 0 3px #8b83f21c}.field textarea{resize:vertical;min-height:62px}.form-note{font-size:9px;color:#9a9cab;line-height:1.5;margin:13px 0 15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+    .toast {position:fixed;bottom:22px;left:50%;transform:translate(-50%,15px);opacity:0;pointer-events:none;background:#242638;color:#fff;padding:11px 15px;border-radius:10px;font-size:10px;box-shadow:0 8px 25px #1c1c2c2e;transition:.22s;z-index:20}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:1050px){.app-shell{grid-template-columns:205px minmax(0,1fr)}.workspace{padding-left:25px;padding-right:25px}.hero-illustration{margin-right:15px}.dashboard-grid{grid-template-columns:minmax(0,1.2fr) minmax(245px,.8fr)}}
+    @media(max-width:850px){.app-shell{display:block}.sidebar{min-height:0;padding:17px 20px 12px;position:relative}.brand{margin:0 0 15px;padding:0 3px;font-size:17px}.nav-caption,.nav-spacer,.sidebar-note,.profile{display:none}.nav-list{display:flex;overflow-x:auto;gap:5px;padding-bottom:2px;scrollbar-width:none}.nav-list::-webkit-scrollbar{display:none}.nav-item{width:auto;flex:0 0 auto;padding:9px 11px;font-size:10px;gap:7px}.nav-item.active{box-shadow:inset 0 -2px #918aff}.nav-item svg{width:15px;height:15px}.workspace{padding:0 22px 40px}.topbar{height:55px}.page-heading{padding-top:25px}.sidebar{z-index:2}}
+    @media(max-width:650px){.workspace{padding:0 15px 30px}.topbar{height:48px}.top-actions{gap:9px}.today-label{font-size:9px}.icon-button{width:31px;height:31px}.page-heading{align-items:flex-start;flex-direction:column;padding:22px 0 16px;gap:13px}h1{font-size:23px}.page-description{font-size:11px}.page-heading>.button{width:100%}.hero{padding:21px 19px;min-height:157px}.hero h2{font-size:19px;max-width:260px}.hero p{font-size:10px;max-width:265px}.hero-illustration{width:95px;height:100px;margin:0 -13px 0 -4px;transform:scale(.8);transform-origin:center right}.hero:before{right:32px}.stats-grid{gap:8px;margin:12px 0}.stat-card{padding:11px 9px;min-height:79px;display:block}.stat-icon{width:29px;height:29px;border-radius:9px;margin-bottom:8px}.stat-icon svg{width:15px;height:15px}.stat-label{font-size:8px;margin-bottom:3px}.stat-value{font-size:16px}.stat-change{font-size:8px;margin-top:4px}.dashboard-grid,.plan-layout,.tutor-layout,.quiz-grid,.insights-grid{grid-template-columns:1fr}.card{padding:15px}.dashboard-grid{gap:12px}.stack{gap:12px}.card-head{margin-bottom:12px}.task-row{min-height:51px}.tutor-aside{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tutor-aside .card + .card{margin:0}.disclaimer{grid-column:1/-1;margin-top:0}.chat-card{min-height:450px}.chat-message{max-width:94%}.quiz-intro{align-items:flex-start}.quiz-art{width:54px;height:54px}.quiz-stage{min-height:250px}.insights-grid .card{min-height:190px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z"/><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></svg></span>studyflow</div>
+      <p class="nav-caption">Your workspace</p>
+      <nav class="nav-list" aria-label="Main navigation">
+        <button class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="11" width="7" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/></svg>Overview</button>
+        <button class="nav-item" data-view="plan"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18m-13 4h2m3 0h2m-7 3h2"/></svg>My study plan</button>
+        <button class="nav-item" data-view="tutor"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 9.8 9.8 3 12l6.8 2.2L12 21l2.2-6.8L21 12l-6.8-2.2L12 3Z"/><path d="m19 3 .7 2.3L22 6l-2.3.7L19 9l-.7-2.3L16 6l2.3-.7L19 3Z"/></svg>AI tutor</button>
+        <button class="nav-item" data-view="practice"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h12v16H8a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h12M10 8h6m-6 3h4"/></svg>Practice</button>
+        <button class="nav-item" data-view="progress"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h17"/><path d="m7 15 4-4 3 2 6-7"/><path d="M16 6h4v4"/></svg>Progress</button>
+      </nav>
+      <div class="nav-spacer"></div>
+      <div class="sidebar-note"><div class="note-orb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></svg></div><strong>A little progress adds up</strong><p>Keep showing up for your goals, one focused session at a time.</p><button data-view="progress">See your progress →</button></div>
+      <div class="profile"><div class="avatar">AS</div><div class="profile-copy"><strong>Alex Student</strong><span>Free learner</span></div><span class="profile-more">···</span></div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar"><div class="crumb">Workspace <span aria-hidden="true">/</span> <b id="crumb-title">Overview</b></div><div class="top-actions"><span class="today-label" id="today-label"></span><button class="icon-button" aria-label="Notifications" id="notification-button"><span class="notification-dot"></span><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4"/></svg></button><div class="avatar">AS</div></div></header>
+
+      <div class="page">
+        <section class="view" id="view-dashboard">
+          <div class="page-heading"><div><p class="eyebrow">Sunday, October 4</p><h1>Good afternoon, Alex <span aria-hidden="true">✦</span></h1><p class="page-description">A little focus today goes a long way. Here’s your learning snapshot.</p></div><button class="button button-primary" data-open-plan><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Customize my plan</button></div>
+
+          <section class="hero"><div class="hero-copy"><p class="hero-kicker">YOUR NEXT SMALL WIN</p><h2>Make today count, one topic at a time.</h2><p>Your next session is ready. Pick up where you left off and keep your streak going.</p><button class="button" data-view="plan">Continue today’s plan <span aria-hidden="true">→</span></button></div><div class="hero-illustration" aria-hidden="true"><span class="orbit"></span><span class="orbit second"></span><span class="book"></span><span class="spark one">✦</span><span class="spark two">✦</span></div></section>
+
+          <section class="stats-grid" aria-label="Study statistics">
+            <article class="stat-card"><div class="stat-icon lavender"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a7 7 0 0 0-4 12.7V19h8v-3.3A7 7 0 0 0 12 3Z"/><path d="M9 22h6m-5-3v-3m4 3v-3M9 8a4 4 0 0 1 3-2"/></svg></div><div class="stat-copy"><span class="stat-label">Study streak</span><strong class="stat-value">6 days</strong><span class="stat-change">↗ 2 days</span></div></article>
+            <article class="stat-card"><div class="stat-icon mint"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="stat-copy"><span class="stat-label">Focused this week</span><strong class="stat-value">12.5 hrs</strong><span class="stat-change">↗ 18%</span></div></article>
+            <article class="stat-card"><div class="stat-icon peach"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h17"/><path d="m7 15 4-4 3 2 6-7"/></svg></div><div class="stat-copy"><span class="stat-label">Overall mastery</span><strong class="stat-value" id="overall-mastery">72%</strong><span class="stat-change">↗ 4%</span></div></article>
+          </section>
+
+          <div class="dashboard-grid">
+            <div class="stack">
+              <section class="card"><div class="card-head"><div><h2 class="card-title">Today’s focus</h2><p class="card-subtitle">Small steps, steady progress</p></div><span class="small-pill">1 hr 15 min</span></div><div class="task-list" id="dashboard-tasks"></div><div class="task-footer"><div class="progress-track"><div class="progress-fill" id="task-progress"></div></div><span id="task-progress-label">1 of 3 complete</span></div></section>
+              <section class="card coach-card"><div class="coach-mark"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L17 18l1.2-.8L19 15Z"/></svg></div><h3>Your study coach noticed something</h3><p>You’re making good progress in Data Structures. A quick practice round on recursion could help your confidence catch up.</p><div class="coach-foot"><button class="button button-soft" data-view="practice">Practice recursion <span aria-hidden="true">→</span></button><span class="sparkles" aria-hidden="true">✦ ✧</span></div></section>
+            </div>
+            <div class="stack">
+              <section class="card exam-card"><div class="card-head"><div><h2 class="card-title">Coming up</h2><p class="card-subtitle">Your next milestone</p></div><span class="exam-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18m4 4h.01M9 14h.01"/></svg></span></div><div class="exam-top"><div><h3>Data Structures exam</h3><p id="exam-date-label">October 24, 2026</p></div><span class="days-left" id="days-left">20 days left</span></div><div class="exam-progress"><div class="progress-track"><div class="progress-fill" style="width:68%"></div></div><span>68% ready</span></div></section>
+              <section class="card week-card"><div class="card-head week-head"><div><h2 class="card-title">This week</h2><p class="card-subtitle">Your focus time</p></div><strong class="week-total">12.5 hrs</strong></div><div class="bars" aria-label="Study hours by day"><div class="bar-col"><div class="bar-rail"><div class="bar" style="height:46%"></div></div><span class="bar-day">M</span></div><div class="bar-col"><div class="bar-rail"><div class="bar" style="height:64%"></div></div><span class="bar-day">T</span></div><div class="bar-col"><div class="bar-rail"><div class="bar" style="height:36%"></div></div><span class="bar-day">W</span></div><div class="bar-col"><div class="bar-rail"><div class="bar" style="height:82%"></div></div><span class="bar-day">T</span></div><div class="bar-col"><div class="bar-rail"><div class="bar" style="height:53%"></div></div><span class="bar-day">F</span></div><div class="bar-col"><div class="bar-rail"><div class="bar" style="height:70%"></div></div><span class="bar-day">S</span></div><div class="bar-col"><div class="bar-rail"><div class="bar today" style="height:25%"></div></div><span class="bar-day today">S</span></div></div></section>
+              <section class="card subject-card"><div class="card-head"><div><h2 class="card-title">Your subjects</h2><p class="card-subtitle">A quick look at your progress</p></div><button class="text-link" data-view="progress">See all</button></div><div class="subject-row"><span class="subject-badge ds">DS</span><div class="subject-detail"><strong>Data Structures</strong><div class="mini-track"><div class="mini-fill" id="ds-mastery-bar" style="width:61%"></div></div></div><span class="subject-score" id="ds-mastery-text">61%</span></div><div class="subject-row"><span class="subject-badge math">MA</span><div class="subject-detail"><strong>Linear Algebra</strong><div class="mini-track"><div class="mini-fill green" style="width:78%"></div></div></div><span class="subject-score">78%</span></div><div class="subject-row"><span class="subject-badge phy">PH</span><div class="subject-detail"><strong>Physics</strong><div class="mini-track"><div class="mini-fill orange" style="width:84%"></div></div></div><span class="subject-score">84%</span></div></section>
+            </div>
+          </div>
+        </section>
+
+        <section class="view hidden" id="view-plan">
+          <div class="page-heading"><div><p class="eyebrow">MADE FOR YOUR GOALS</p><h1>Your study plan</h1><p class="page-description">A flexible path from today to exam day, with extra time for the topics you’re still learning.</p></div><button class="button button-primary" data-open-plan><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Edit plan</button></div>
+          <div class="plan-layout"><section class="card"><div class="card-head"><div><h2 class="card-title">Your next sessions</h2><p class="card-subtitle">A sample schedule based on your upcoming exam</p></div><span class="small-pill">Week of Oct 4</span></div><div class="plan-day"><div class="date-chip"><b>04</b><span>Sun</span></div><div class="plan-items"><div class="plan-item"><div><strong>Review linked lists</strong><span>Data Structures · Review</span></div><span class="time">9:00 AM · 25 min</span></div><div class="plan-item"><div><strong>Practice recursion</strong><span>Data Structures · Practice</span></div><span class="time">9:30 AM · 30 min</span></div></div></div><div class="plan-day"><div class="date-chip"><b>05</b><span>Mon</span></div><div class="plan-items"><div class="plan-item"><div><strong>Build a formula sheet</strong><span>Linear Algebra · Create</span></div><span class="time">4:00 PM · 20 min</span></div><div class="plan-item"><div><strong>Matrix transformations</strong><span>Linear Algebra · Learn</span></div><span class="time">4:30 PM · 35 min</span></div></div></div><div class="plan-day"><div class="date-chip"><b>06</b><span>Tue</span></div><div class="plan-items"><div class="plan-item"><div><strong>Quiz: stacks and queues</strong><span>Data Structures · Practice</span></div><span class="time">5:30 PM · 20 min</span></div><div class="plan-item"><div><strong>Review Newton’s laws</strong><span>Physics · Review</span></div><span class="time">6:00 PM · 25 min</span></div></div></div><div class="plan-day"><div class="date-chip"><b>07</b><span>Wed</span></div><div class="plan-items"><div class="plan-item"><div><strong>Explain it back: recursion</strong><span>Data Structures · Recall</span></div><span class="time">3:30 PM · 25 min</span></div></div></div></section><aside class="card plan-summary"><div class="card-head"><div><h2 class="card-title">Your goal</h2><p class="card-subtitle">One milestone at a time</p></div><span class="exam-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span></div><div class="summary-number" id="plan-days">20 days</div><p class="summary-hint">until your Data Structures exam</p><div class="summary-line"><span>Daily study time</span><strong id="summary-hours">2 hours</strong></div><div class="summary-line"><span>Subjects in plan</span><strong id="summary-subjects">3 subjects</strong></div><div class="summary-line"><span>Learning style</span><strong id="summary-style">Practice first</strong></div><div style="margin-top:14px"><button class="button button-soft" data-open-plan style="width:100%">Personalize my plan</button></div></aside></div>
+        </section>
+
+        <section class="view hidden" id="view-tutor">
+          <div class="page-heading"><div><p class="eyebrow">LEARN AT YOUR OWN PACE</p><h1>Ask your study tutor</h1><p class="page-description">Ask a question, get a simpler explanation, or explore a topic step by step.</p></div><span class="small-pill">✦ Your learning companion</span></div>
+          <div class="tutor-layout"><section class="card chat-card"><div class="card-head"><div><h2 class="card-title">Study chat</h2><p class="card-subtitle">A supportive place to work through a tricky idea</p></div><span class="small-pill">Data Structures</span></div><div class="chat-log" id="chat-log"><div class="chat-message"><div class="chat-avatar"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z"/></svg></div><div class="bubble">Hi Alex! What are you working on today? I can break a concept into smaller steps or help you practice.<span class="bubble-meta">Studyflow tutor · just now</span></div></div></div><form class="chat-form" id="chat-form"><input id="chat-input" autocomplete="off" placeholder="Ask a question or name a topic…" aria-label="Message your tutor"><button class="button button-primary" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4 20-7ZM22 2 11 13"/></svg></button></form><div class="suggestions"><button class="suggestion">Explain recursion simply</button><button class="suggestion">Quiz me on linked lists</button><button class="suggestion">Give me a quick recap</button></div></section><aside class="tutor-aside"><section class="card"><h2 class="card-title">Your focus topic</h2><span class="topic-pill">Recursion · needs practice</span><p class="tip-copy">Try explaining the base case and recursive step in your own words.</p><button class="text-link" style="margin-top:12px" data-view="practice">Practice this topic →</button></section><section class="card"><h2 class="card-title">A helpful habit</h2><p class="tip-copy" style="margin-top:9px">After an explanation, close your notes and try to recall the idea from memory. That’s where learning sticks.</p></section><p class="disclaimer">Prototype preview: tutor replies are sample responses. Connect an AI model to enable live, subject-aware help.</p></aside></div>
+        </section>
+
+        <section class="view hidden" id="view-practice">
+          <div class="page-heading"><div><p class="eyebrow">BUILD CONFIDENCE BY DOING</p><h1>Practice & quick quizzes</h1><p class="page-description">Short practice sessions help you spot what’s clicking and what needs another look.</p></div><span class="small-pill">3 questions · about 3 min</span></div>
+          <div class="quiz-intro"><div class="quiz-art"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h12v16H8a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"/><path d="M5 17a3 3 0 0 1 3-3h12M10 8h6m-6 3h4"/><path d="m15 16 1.5 1.5L20 14"/></svg></div><div><h2>Recursion check-in</h2><p>Let’s review the building blocks: base cases, recursive calls, and how the stack unwinds.</p></div></div>
+          <div class="quiz-grid"><section class="card quiz-stage" id="quiz-stage"><div class="card-head"><div><h2 class="card-title">Ready when you are</h2><p class="card-subtitle">No timer. Take a breath and think it through.</p></div><span class="small-pill">Data Structures</span></div><p style="color:#818596;font-size:10px;line-height:1.6;max-width:480px">This short set checks your understanding of recursion. After each answer, you’ll get a small explanation and a chance to review the idea.</p><button class="button button-primary start-quiz" style="margin-top:10px">Start practice <span aria-hidden="true">→</span></button><p class="disclaimer">Sample quiz content for prototype exploration.</p></section><aside class="card"><div class="card-head"><div><h2 class="card-title">Topic mastery</h2><p class="card-subtitle">Based on recent practice</p></div></div><div class="mastery-list"><div class="mastery-item"><div><strong>Recursion</strong><div class="mini-track"><div class="mini-fill" id="recursion-bar" style="width:42%"></div></div></div><span class="score" id="recursion-score">42%</span></div><div class="mastery-item"><div><strong>Linked lists</strong><div class="mini-track"><div class="mini-fill" style="width:67%"></div></div></div><span class="score">67%</span></div><div class="mastery-item"><div><strong>Stacks & queues</strong><div class="mini-track"><div class="mini-fill" style="width:76%"></div></div></div><span class="score">76%</span></div></div><div style="border-top:1px solid #f0f1f5;margin-top:17px;padding-top:13px"><p class="tip-copy"><strong style="color:#4d5061">Suggested next:</strong> Try one more recursion example after this quiz.</p></div></aside></div>
+        </section>
+
+        <section class="view hidden" id="view-progress">
+          <div class="page-heading"><div><p class="eyebrow">NOTICE HOW FAR YOU’VE COME</p><h1>Your learning progress</h1><p class="page-description">Use these snapshots to celebrate what’s working and decide what to revisit next.</p></div><span class="small-pill">Last 7 days</span></div>
+          <div class="insights-grid"><section class="card"><div class="card-head"><div><h2 class="card-title">Overall learning rhythm</h2><p class="card-subtitle">Consistency matters more than perfect days</p></div></div><div class="big-progress"><div class="ring"><div><strong>72%</strong><span>overall mastery</span></div></div><div class="insight-copy"><strong>Steady progress</strong><p>You’ve put in 12.5 focused hours this week. Keep the sessions manageable and keep coming back.</p></div></div></section><section class="card"><div class="card-head"><div><h2 class="card-title">Study time by day</h2><p class="card-subtitle">Focused hours this week</p></div><strong class="week-total">12.5 hrs</strong></div><div class="week-detail"><div class="week-detail-row"><span>Monday</span><div class="progress-track"><div class="progress-fill" style="width:52%"></div></div><strong>1.3 h</strong></div><div class="week-detail-row"><span>Tuesday</span><div class="progress-track"><div class="progress-fill" style="width:75%"></div></div><strong>1.9 h</strong></div><div class="week-detail-row"><span>Wednesday</span><div class="progress-track"><div class="progress-fill" style="width:40%"></div></div><strong>1.0 h</strong></div><div class="week-detail-row"><span>Thursday</span><div class="progress-track"><div class="progress-fill" style="width:92%"></div></div><strong>2.3 h</strong></div><div class="week-detail-row"><span>Friday</span><div class="progress-track"><div class="progress-fill" style="width:65%"></div></div><strong>1.6 h</strong></div><div class="week-detail-row"><span>Weekend</span><div class="progress-track"><div class="progress-fill" style="width:100%"></div></div><strong>4.4 h</strong></div></div></section><section class="card"><div class="card-head"><div><h2 class="card-title">Subject mastery</h2><p class="card-subtitle">Knowledge grows with practice</p></div></div><div class="mastery-list"><div class="mastery-item"><div><strong>Data Structures</strong><div class="mini-track"><div class="mini-fill" id="progress-ds-bar" style="width:61%"></div></div></div><span class="score" id="progress-ds-score">61%</span></div><div class="mastery-item"><div><strong>Linear Algebra</strong><div class="mini-track"><div class="mini-fill" style="width:78%"></div></div></div><span class="score">78%</span></div><div class="mastery-item"><div><strong>Physics</strong><div class="mini-track"><div class="mini-fill" style="width:84%"></div></div></div><span class="score">84%</span></div></div></section><section class="card"><div class="card-head"><div><h2 class="card-title">Study reminders</h2><p class="card-subtitle">Gentle nudges, on your terms</p></div></div><div class="reminder-row"><div><strong>Daily study session</strong><span>Weekdays · 4:00 PM</span></div><button class="toggle on" aria-label="Toggle daily study reminder" aria-pressed="true"></button></div><div class="reminder-row"><div><strong>Exam countdown</strong><span>Weekly · Sunday morning</span></div><button class="toggle" aria-label="Toggle exam countdown reminder" aria-pressed="false"></button></div><p class="disclaimer">Prototype reminders change on screen only. Notifications need an app service.</p></section></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="plan-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal"><div class="modal-head"><div><h2 id="modal-title">Make this plan yours</h2><p>Tell us what you’re working toward. Your schedule can change as you do.</p></div><button class="close-modal" type="button" aria-label="Close dialog">×</button></div><form id="plan-form"><div class="form-grid"><div class="field"><label for="exam-date">Next exam date</label><input id="exam-date" type="date" value="2026-10-24" required></div><div class="field"><label for="study-hours">Available time each day</label><select id="study-hours"><option value="1">1 hour</option><option value="2" selected>2 hours</option><option value="3">3 hours</option><option value="4">4+ hours</option></select></div><div class="field full"><label for="subjects">Subjects to include</label><input id="subjects" value="Data Structures, Linear Algebra, Physics"></div><div class="field full"><label for="learning-style">What helps you learn?</label><select id="learning-style"><option>Practice first</option><option>Short explanations</option><option>Visual examples</option><option>Review and repetition</option></select></div></div><p class="form-note">For this prototype, your plan is a local preview. A full app can turn your syllabus into topic-by-topic sessions and reminders.</p><div class="modal-actions"><button class="button button-outline" type="button" id="cancel-modal">Cancel</button><button class="button button-primary" type="submit">Save my plan</button></div></form></div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const names = { dashboard: 'Overview', plan: 'My study plan', tutor: 'AI tutor', practice: 'Practice', progress: 'Progress' };
+    const tasks = [
+      { title: 'Review linked lists', detail: 'Data Structures · 25 min', type: 'review', done: true },
+      { title: 'Practice recursion', detail: 'Data Structures · 30 min', type: 'practice', done: false },
+      { title: 'Make a formula sheet', detail: 'Linear Algebra · 20 min', type: 'review', done: false }
+    ];
+    let activeView = 'dashboard';
+    let toastTimer;
+    let recursionScore = 42;
+    let examDate = new Date('2026-10-24T12:00:00');
+    const taskList = document.getElementById('dashboard-tasks');
+    const checkSvg = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 3 3 7-7"/></svg>';
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+    function setView(view) {
+      if (!names[view]) return;
+      activeView = view;
+      document.querySelectorAll('.view').forEach(section => section.classList.toggle('hidden', section.id !== `view-${view}`));
+      document.querySelectorAll('.nav-item').forEach(button => button.classList.toggle('active', button.dataset.view === view));
+      document.getElementById('crumb-title').textContent = names[view];
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function renderTasks() {
+      taskList.innerHTML = tasks.map((task, index) => `<div class="task-row${task.done ? ' done' : ''}"><button class="task-check" data-task="${index}" aria-label="${task.done ? 'Mark incomplete' : 'Mark complete'}: ${task.title}">${checkSvg}</button><div class="task-copy"><strong>${task.title}</strong><span>${task.detail}</span></div><span class="task-tag ${task.type}">${task.type === 'practice' ? 'Practice' : 'Review'}</span></div>`).join('');
+      const done = tasks.filter(task => task.done).length;
+      document.getElementById('task-progress').style.width = `${Math.round(done / tasks.length * 100)}%`;
+      document.getElementById('task-progress-label').textContent = `${done} of ${tasks.length} complete`;
+    }
+    renderTasks();
+
+    const now = new Date();
+    document.getElementById('today-label').textContent = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    document.addEventListener('click', event => {
+      const button = event.target.closest('[data-view]');
+      if (button) setView(button.dataset.view);
+    });
+    document.querySelectorAll('[data-open-plan]').forEach(button => button.addEventListener('click', openPlan));
+    taskList.addEventListener('click', event => {
+      const button = event.target.closest('[data-task]');
+      if (!button) return;
+      tasks[Number(button.dataset.task)].done = !tasks[Number(button.dataset.task)].done;
+      renderTasks();
+      if (tasks.every(task => task.done)) showToast('Lovely work — today’s focus is complete.');
+    });
+
+    const modal = document.getElementById('plan-modal');
+    function openPlan() { modal.classList.remove('hidden'); document.getElementById('exam-date').focus(); }
+    function closePlan() { modal.classList.add('hidden'); }
+    document.querySelector('.close-modal').addEventListener('click', closePlan);
+    document.getElementById('cancel-modal').addEventListener('click', closePlan);
+    modal.addEventListener('click', event => { if (event.target === modal) closePlan(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closePlan(); });
+    document.getElementById('plan-form').addEventListener('submit', event => {
+      event.preventDefault();
+      const dateValue = document.getElementById('exam-date').value;
+      examDate = new Date(`${dateValue}T12:00:00`);
+      const hours = document.getElementById('study-hours').value;
+      const style = document.getElementById('learning-style').value;
+      const subjects = document.getElementById('subjects').value.split(',').map(subject => subject.trim()).filter(Boolean);
+      document.getElementById('exam-date-label').textContent = examDate.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+      document.getElementById('summary-hours').textContent = hours === '4' ? '4+ hours' : `${hours} ${hours === '1' ? 'hour' : 'hours'}`;
+      document.getElementById('summary-subjects').textContent = `${subjects.length} ${subjects.length === 1 ? 'subject' : 'subjects'}`;
+      document.getElementById('summary-style').textContent = style;
+      const days = Math.max(0, Math.ceil((new Date(`${dateValue}T12:00:00`) - new Date(new Date().toDateString())) / 86400000));
+      document.getElementById('days-left').textContent = `${days} ${days === 1 ? 'day' : 'days'} left`;
+      document.getElementById('plan-days').textContent = `${days} ${days === 1 ? 'day' : 'days'}`;
+      closePlan();
+      showToast('Your study plan preview is updated.');
+    });
+
+    function escapeHTML(value) { return value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character])); }
+    function tutorReply(question) {
+      const q = question.toLowerCase();
+      if (q.includes('recurs') || q.includes('base case')) return 'Think of recursion as solving a smaller version of the same problem. A base case is the simple situation you can answer right away; the recursive step moves one step closer to it. For a countdown, the base case is reaching zero.';
+      if (q.includes('linked')) return 'A linked list is a chain of small nodes. Each node stores a value and a pointer to the next node. Unlike an array, the nodes do not need to sit next to each other in memory. Want to sketch what happens when we insert one?';
+      if (q.includes('quiz') || q.includes('practice')) return 'Let’s make it active: without looking at your notes, explain the base case for a recursive function that sums the numbers from 1 to n. Then tell me what smaller input the function should use.';
+      if (q.includes('recap') || q.includes('summary')) return 'Quick recap: recursion needs (1) a base case that stops, (2) a recursive call on a smaller problem, and (3) progress toward that base case. If one of these is missing, the function may never finish.';
+      return 'Good question. Start by naming the part that feels unclear, then connect it to a small example. In this prototype I can help with recursion, linked lists, and study strategies. Try asking me to explain one of those step by step.';
+    }
+    const chatLog = document.getElementById('chat-log');
+    function addMessage(text, isUser) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `chat-message${isUser ? ' user' : ''}`;
+      const avatar = isUser ? '<div class="chat-avatar">AS</div>' : '<div class="chat-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z"/></svg></div>';
+      wrapper.innerHTML = `${avatar}<div class="bubble">${escapeHTML(text)}<span class="bubble-meta">${isUser ? 'You' : 'Sample tutor reply'} · just now</span></div>`;
+      chatLog.appendChild(wrapper);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    document.getElementById('chat-form').addEventListener('submit', event => {
+      event.preventDefault();
+      const input = document.getElementById('chat-input');
+      const question = input.value.trim();
+      if (!question) return;
+      addMessage(question, true);
+      input.value = '';
+      setTimeout(() => addMessage(tutorReply(question), false), 320);
+    });
+    document.querySelectorAll('.suggestion').forEach(button => button.addEventListener('click', () => {
+      document.getElementById('chat-input').value = button.textContent;
+      document.getElementById('chat-input').focus();
+    }));
+
+    const quizQuestions = [
+      { question: 'What is the main purpose of a base case in a recursive function?', options: ['To make the function run faster every time', 'To stop the recursion when a simple case is reached', 'To call the function with the same input again'], correct: 1, explain: 'The base case gives recursion a stopping point. Without it, the function could keep calling itself.' },
+      { question: 'In a recursive countdown(n), what should the next call use?', options: ['countdown(n + 1)', 'countdown(n)', 'countdown(n - 1)'], correct: 2, explain: 'Using n - 1 makes the input smaller each time, moving toward a base case such as n === 0.' },
+      { question: 'What happens as recursive calls finish returning?', options: ['They unwind in reverse order', 'They all disappear at the same time', 'They run again from the beginning'], correct: 0, explain: 'Each call waits on the call below it. When the base case returns, the waiting calls finish one by one.' }
+    ];
+    let quizIndex = 0;
+    let quizAnswers = [];
+    let selectedAnswer = null;
+    let answerShown = false;
+    const stage = document.getElementById('quiz-stage');
+    function startQuiz() {
+      quizIndex = 0; quizAnswers = []; selectedAnswer = null; answerShown = false;
+      renderQuestion();
+    }
+    function renderQuestion() {
+      const item = quizQuestions[quizIndex];
+      stage.innerHTML = `<div class="card-head"><div><h2 class="card-title">Recursion check-in</h2><p class="card-subtitle">Take your time — this is practice, not a test.</p></div><span class="small-pill">Question ${quizIndex + 1} of ${quizQuestions.length}</span></div><p class="quiz-question">${item.question}</p><div>${item.options.map((option, index) => `<button class="quiz-option${selectedAnswer === index ? ' selected' : ''}${answerShown && index === item.correct ? ' correct' : ''}${answerShown && selectedAnswer === index && index !== item.correct ? ' wrong' : ''}" data-answer="${index}" ${answerShown ? 'disabled' : ''}><span class="option-letter">${String.fromCharCode(65 + index)}</span>${option}</button>`).join('')}</div>${answerShown ? `<div class="quiz-feedback ${selectedAnswer === item.correct ? 'good' : 'try'}">${selectedAnswer === item.correct ? 'That’s it! ' : 'Not quite. '} ${item.explain}</div>` : ''}<div class="quiz-bottom"><span class="quiz-count">${answerShown ? 'Answer saved' : 'Choose the best answer'}</span>${answerShown ? `<button class="button button-primary" data-next>${quizIndex === quizQuestions.length - 1 ? 'See my results' : 'Next question →'}</button>` : `<button class="button button-soft" data-check ${selectedAnswer === null ? 'disabled' : ''}>Check answer</button>`}</div>`;
+      const check = stage.querySelector('[data-check]');
+      check.style.opacity = selectedAnswer === null ? '.55' : '1';
+      check.style.cursor = selectedAnswer === null ? 'not-allowed' : 'pointer';
+    }
+    function finishQuiz() {
+      const correct = quizAnswers.filter((answer, index) => answer === quizQuestions[index].correct).length;
+      const percent = Math.round(correct / quizQuestions.length * 100);
+      recursionScore = Math.min(100, recursionScore + Math.max(3, Math.round(percent / 10)));
+      document.getElementById('recursion-bar').style.width = `${recursionScore}%`;
+      document.getElementById('recursion-score').textContent = `${recursionScore}%`;
+      const ds = Math.min(100, 61 + Math.round(correct * 2));
+      document.getElementById('ds-mastery-bar').style.width = `${ds}%`;
+      document.getElementById('ds-mastery-text').textContent = `${ds}%`;
+      document.getElementById('progress-ds-bar').style.width = `${ds}%`;
+      document.getElementById('progress-ds-score').textContent = `${ds}%`;
+      document.getElementById('overall-mastery').textContent = `${Math.min(100, 72 + Math.round(correct / 3))}%`;
+      stage.innerHTML = `<div class="card-head"><div><h2 class="card-title">Practice complete</h2><p class="card-subtitle">You took a good step forward.</p></div><span class="small-pill">Recursion</span></div><div class="big-progress" style="margin:13px 0 20px"><div class="ring" style="background:conic-gradient(#756ce7 0 ${percent}%,#eeedf8 ${percent}% 100%)"><div><strong>${correct}/${quizQuestions.length}</strong><span>correct</span></div></div><div class="insight-copy"><strong>${correct === 3 ? 'Excellent work!' : correct >= 2 ? 'Nice progress!' : 'Good start!'}</strong><p>You practiced the key ideas behind recursion. A short review later will help them stick.</p></div></div><button class="button button-primary start-quiz">Practice again</button> <button class="button button-outline" data-view="progress">View progress</button>`;
+      showToast(`Quiz complete — ${correct} of ${quizQuestions.length} correct.`);
+    }
+    stage.addEventListener('click', event => {
+      const start = event.target.closest('.start-quiz');
+      if (start) { startQuiz(); return; }
+      const option = event.target.closest('[data-answer]');
+      if (option && !answerShown) { selectedAnswer = Number(option.dataset.answer); renderQuestion(); return; }
+      if (event.target.closest('[data-check]')) {
+        if (selectedAnswer === null) return;
+        answerShown = true; quizAnswers[quizIndex] = selectedAnswer; renderQuestion(); return;
+      }
+      if (event.target.closest('[data-next]')) {
+        if (quizIndex === quizQuestions.length - 1) finishQuiz();
+        else { quizIndex++; selectedAnswer = null; answerShown = false; renderQuestion(); }
+      }
+    });
+
+    document.querySelectorAll('.toggle').forEach(toggle => toggle.addEventListener('click', () => {
+      const on = toggle.classList.toggle('on');
+      toggle.setAttribute('aria-pressed', String(on));
+      showToast(on ? 'Reminder preview turned on.' : 'Reminder preview turned off.');
+    }));
+    document.getElementById('notification-button').addEventListener('click', () => showToast('You’re all caught up.'));
+  </script>
+</body>
+</html>
